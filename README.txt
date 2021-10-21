@@ -12,13 +12,6 @@ Indication burlgar alarm lamp on/off --> m0011/m1011
 Indoor lighting on/off               --> m0010/m1010
 Timer 2 on/off 			     --> m0001/m1001
 Sound on/off			     --> m1000/m0000
-
-Fire alarm active/inactive 	     --> d21/d20
-Burglar alarm active/inactive	     --> d30/d31
-Waterleakage active/inactive	     --> d41/d40
-Stove on/off			     --> d51/d50
-Window open/closed		     --> d61/d60
-Power outage active/inactive 	     --> d71/d70
 ----------------------------------------------------------------------------------------------
 Send corresponding strings to devices-server for feedback.
 Ex: checking the outdoor temperature is done by sending the string "d9" to the devices-server
@@ -27,10 +20,23 @@ Check outside temperature 	     --> d9
 Check inside temperature	     --> a1
 Check inside temperature attic       --> a2
 Check LDR (light reader)	     --> a3
+
+**Correspons to 1/0**
+Fire alarm active/inactive 	     --> r2
+Burglar alarm inactive/active	     --> r3
+Waterleakage active/inactive	     --> r4
+Stove on/off			     --> r5
+Window open/closed		     --> r6
+Power outage active/inactive 	     --> r7
 ----------------------------------------------------------------------------------------------
 Send corresponding strings to devices-server for modulating input amount (0-255 = 0-100%).
 Ex: turning on the inside fan at roughly 50% speed is done by sending string "p127"
 
 Fan 				     --> p[value 0-255]
 ----------------------------------------------------------------------------------------------
-
+BEWARE!
+There are more commands that can be sent, but has no useful functionality. Such commands could for
+example be write commands for controllers that only support reading. Digital pin 2 can be read
+by sending 'r2' as seen from the protocol above, however you can also send 'd21' to write value
+1 to digital pin 2, but since pin 2 does not have any device accepting inputs, it is useless.
+Do not send useless commands to the arduino.
