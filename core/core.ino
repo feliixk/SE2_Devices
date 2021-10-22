@@ -1,38 +1,41 @@
 /**
  * Code modified from and inspired by https://learn.sparkfun.com/tutorials/xbee-shield-hookup-guide/all
  * Last accessed 2021-10-04
- * Last modified 2021-10-11
+ * Last modified 2021-10-21
  * Written by Simon Sörensen @ Kristianstad University
  */
 
 #include <SoftwareSerial.h>
 SoftwareSerial XBee(0, 1);
+bool cont = true; // global cont var for alarm checkers
 
 void setup()
 {
-  XBee.begin(9600); 
+  XBee.begin(9600);
 }
 
 void loop()
 {
-  xbeeChecker();
+  systemsChecker();
+  XBeeChecker();
 }
 
-void writeDPin()
+void writeD()
 {
   while (XBee.available() < 2)
-    ; // Wait for pin and value to become available
-  char pin = XBee.read();
-  char hl = ASCIItoHL(XBee.read());
+    ; 
+  char pin = XBee.read(); // regularly used variables can be accessed by pointers/references instead
+  char in = XBee.read();
+  char hl = ASCIItoHL((int)in);
+  String pinString  = "d";
+  pinString += String(pin);
+  String valueString = String(in);
 
-  XBee.print("Setting pin ");
-  XBee.print(pin);
-  XBee.print(" to ");
-  XBee.println(hl ? "HIGH" : "LOW");
+  response(pinString, valueString);
 
-  pin = ASCIItoInt(pin); // Convert ASCCI to a 0-13 value
-  pinMode(pin, OUTPUT); // Set pin as an OUTPUT
-  digitalWrite(pin, hl); // Write pin accordingly
+  pin = ASCIItoInt(pin);
+  pinMode(pin, OUTPUT); 
+  digitalWrite(pin, hl); 
 }
 
 void writePWM()
@@ -45,36 +48,43 @@ void writePWM()
  value += ASCIItoInt(XBee.read());          
  value = constrain(value, 0, 255); 
 
- XBee.print("Setting pin ");
- XBee.print(10);
- XBee.print(" to ");
- XBee.println(value);
+ response("p", String(value));
 
  pinMode(10, OUTPUT); 
  analogWrite(10, value); 
 }
 
-void writeMpin()
+void writeM()
 {
   while (XBee.available() < 4)
     ;
-  char h1 = ASCIItoHL(XBee.read());
-  char h2 = ASCIItoHL(XBee.read());
-  char h3 = ASCIItoHL(XBee.read());
-  char h4 = ASCIItoHL(XBee.read());
+  // maybe unnessersary usage of space just for sending a response but arduino is only at about 29% memusage so far
+  char h11 = XBee.read();
+  char h22 = XBee.read();
+  char h33 = XBee.read();
+  char h44 = XBee.read();
+  int h1 = ASCIItoHL((int)h11);
+  int h2 = ASCIItoHL((int)h22);
+  int h3 = ASCIItoHL((int)h33);
+  int h4 = ASCIItoHL((int)h44);
 
-  XBee.print("Setting mux to ");
-  XBee.print(h1 + h2 + h3 + h4);
+  String s = String(h11) + String(h22) + String(h33) + String(h44);
+  response("m", s);
 
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
   pinMode(11, OUTPUT);
   pinMode(8, OUTPUT); 
+
+  if(h11 == '0' && h22 == '0' && h33 == '0' && h44 == '0')
+  {
+    cont = true;
+  }
   
   mux(h1, h2, h3, h4);
 }
 
-void writeAPin()
+void writeA()
 {
   while (XBee.available() < 4)
     ; 
@@ -84,64 +94,52 @@ void writeAPin()
   value += ASCIItoInt(XBee.read());          
   value = constrain(value, 0, 255); 
 
-  XBee.print("Setting pin ");
-  XBee.print(pin);
-  XBee.print(" to ");
-  XBee.println(value);
+  response("a" + String(pin), String(value));
 
   pin = ASCIItoInt(pin);
   pinMode(pin, OUTPUT); 
   analogWrite(pin, value);
 }
 
-void readDPin()
+void readD()
 {
   while (XBee.available() < 1)
     ;
   char pin = XBee.read(); 
-  XBee.print("Pin ");
-  XBee.print(pin);
   pin = ASCIItoInt(pin); 
   
   if(pin == 9)
   {
     pinMode(pin, INPUT);
-    XBee.print(" = "); 
-    XBee.println(tempconverter(digitalRead(pin)));
+    XBee.print(tempconverter(digitalRead(pin)));
   } else {
     pinMode(pin, INPUT);
-    XBee.print(" = "); 
-    XBee.println(digitalRead(pin));
+    response("", String(digitalRead(pin)));
   }
 }
 
-void readAPin()
+void readA()
 {
   while (XBee.available() < 1)
     ; 
   char pin = XBee.read(); 
-  XBee.print("Pin A");
-  XBee.print(pin);
   pin = ASCIItoInt(pin); 
   
-  if(pin == 1 || pin == 2)
+  if(pin == 1 || pin == 2) 
   {
-    XBee.print(" = ");
-    XBee.println(tempconverter(analogRead(pin)));
-  } else if(pin == 2)
+    response("", String(tempconverter(analogRead(pin))));
+  } 
+  else if(pin == 3)
   {
-    XBee.print(" = ");
-    XBee.println(tempconverter(analogRead(pin))); 
-  }else {
-    XBee.print(" = ");
-    XBee.println(analogRead(pin)); 
+    response("", String(lightconverter(analogRead(pin))));
+  }
+  else {
+    response("", String(analogRead(pin))); 
   }
 }
 
 int ASCIItoHL(char c)
 {
-  // If received 0, byte value 0, L, or l: return LOW
-  // If received 1, byte value 1, H, or h: return HIGH
   if ((c == '0') || (c == 0) || (c == 'L') || (c == 'l'))
     return LOW;
   else if ((c == '1') || (c == 1) || (c == 'H') || (c == 'h'))
@@ -153,16 +151,17 @@ int ASCIItoHL(char c)
 int ASCIItoInt(char c)
 {
   if ((c >= '0') && (c <= '9'))
-    return c - 0x30; // Minus 0x30
+    return c - 0x30; 
   else if ((c >= 'A') && (c <= 'F'))
-    return c - 0x37; // Minus 0x41 plus 0x0A
+    return c - 0x37; 
   else if ((c >= 'a') && (c <= 'f'))
-    return c - 0x57; // Minus 0x61 plus 0x0A
+    return c - 0x57; 
   else
     return -1;
 }
 
-void mux(int a, int b, int c, int d){
+void mux(int a, int b, int c, int d)
+{
   digitalWrite(12, a);
   digitalWrite(13, b);
   digitalWrite(11, c);
@@ -176,7 +175,45 @@ float tempconverter(int val)
   return cel;
 }
 
-void xbeeChecker(){
+int lightconverter(int light)
+{
+  return map(light, 0, 1023, 0, 100);
+}
+
+void response(String pin, String value)
+{
+  XBee.print(pin);
+  XBee.print(value);
+}
+
+void burglaryCheck(int pin){
+  soundwhenLOW(pin);
+}
+
+void windowCheck(int pin){
+  soundwhenHIGH(pin);
+}
+
+void fireAlarmCheck(int pin){
+ soundwhenHIGH(pin);
+}
+
+void soundwhenHIGH(int pin){
+  if(digitalRead(pin) == 1){
+    mux(1,0,0,0);
+    cont = false;
+  } 
+}
+
+void soundwhenLOW(int pin){
+  if(digitalRead(pin) == 0){
+    mux(1,0,0,0);
+    cont = false;
+  }
+}
+
+// checks the XBee for commands
+void XBeeChecker(){
   if (XBee.available())
   {
     char c = XBee.read();
@@ -184,23 +221,23 @@ void xbeeChecker(){
     {
     case 'w':      
     case 'W':     
-      writeAPin(); 
+      writeA(); 
       break;
     case 'd':    
     case 'D':     
-      writeDPin(); 
+      writeD(); 
       break;
     case 'r':      
     case 'R':      
-      readDPin();  
+      readD();  
       break;
     case 'a':    
     case 'A':     
-      readAPin();  
+      readA();  
       break;
     case 'm':
     case 'M':
-      writeMpin();
+      writeM();
       break;
     case 'p':
     case 'P':
@@ -208,4 +245,12 @@ void xbeeChecker(){
       break;
     }
   }
+}
+
+// checks the internal house systems for alarm
+void systemsChecker()
+{
+  burglaryCheck(3);
+  windowCheck(6);
+  fireAlarmCheck(2);
 }
