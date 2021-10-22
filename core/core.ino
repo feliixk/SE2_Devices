@@ -1,7 +1,7 @@
 /**
  * Code modified from and inspired by https://learn.sparkfun.com/tutorials/xbee-shield-hookup-guide/all
  * Last accessed 2021-10-04
- * Last modified 2021-10-21
+ * Last modified 2021-10-22
  * Written by Simon Sörensen @ Kristianstad University
  */
 
@@ -68,8 +68,8 @@ void writeM()
   int h3 = ASCIItoHL((int)h33);
   int h4 = ASCIItoHL((int)h44);
 
-  String s = String(h11) + String(h22) + String(h33) + String(h44);
-  response("m", s);
+  String r = String(h11) + String(h22) + String(h33) + String(h44);
+  response("m", r);
 
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
@@ -94,7 +94,7 @@ void writeA()
   value += ASCIItoInt(XBee.read());          
   value = constrain(value, 0, 255); 
 
-  response("a" + String(pin), String(value));
+  response("w" + String(pin), String(value));
 
   pin = ASCIItoInt(pin);
   pinMode(pin, OUTPUT); 
@@ -111,7 +111,7 @@ void readD()
   if(pin == 9)
   {
     pinMode(pin, INPUT);
-    XBee.print(tempconverter(digitalRead(pin)));
+    response("", String(tempconverter(digitalRead(pin))));
   } else {
     pinMode(pin, INPUT);
     response("", String(digitalRead(pin)));
@@ -199,17 +199,38 @@ void fireAlarmCheck(int pin){
 }
 
 void soundwhenHIGH(int pin){
-  if(digitalRead(pin) == 1){
+  if(digitalRead(pin) == 1 && cont){
     mux(1,0,0,0);
     cont = false;
   } 
 }
 
 void soundwhenLOW(int pin){
-  if(digitalRead(pin) == 0){
+  if(digitalRead(pin) == 0 && cont){
     mux(1,0,0,0);
     cont = false;
   }
+}
+
+void trueOrNah(int trueOrNah)
+{
+  if(trueOrNah == '1'){
+    cont = true;
+  } 
+  else if(trueOrNah == '0')
+  {
+    cont = false;
+  }
+}
+
+void alarmToggle()
+{
+  while (XBee.available() < 1)
+    ;
+  char onOffchar = XBee.read();
+  trueOrNah(onOffchar);
+  String sendMeBack = String("b") + String(onOffchar);
+  response("", sendMeBack);
 }
 
 // checks the XBee for commands
@@ -219,29 +240,26 @@ void XBeeChecker(){
     char c = XBee.read();
     switch (c)
     {
-    case 'w':      
-    case 'W':     
+    case 'w':         
       writeA(); 
       break;
     case 'd':    
-    case 'D':     
       writeD(); 
       break;
-    case 'r':      
-    case 'R':      
+    case 'r':           
       readD();  
       break;
     case 'a':    
-    case 'A':     
       readA();  
       break;
     case 'm':
-    case 'M':
       writeM();
       break;
     case 'p':
-    case 'P':
       writePWM();
+      break;
+    case 'b':
+      alarmToggle();
       break;
     }
   }
