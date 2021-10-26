@@ -1,4 +1,6 @@
 # SE2_Devices
 
 
-Leggo! :D
+Software Engineering 2 Project at HKR
+
+Controlled devices subgroup
