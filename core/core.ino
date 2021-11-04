@@ -1,5 +1,4 @@
 /**
- * Code modified from and inspired by https://learn.sparkfun.com/tutorials/xbee-shield-hookup-guide/all
  * Last accessed 2021-10-04
  * Last modified 2021-10-22
  * Written by Simon Sörensen @ Kristianstad University
