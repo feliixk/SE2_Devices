@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="ArduinoComms" target="16" />
+      <module name="ArduinoComms" target="12" />
     </bytecodeTargetLevel>
   </component>
 </project>
