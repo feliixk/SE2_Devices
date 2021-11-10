@@ -1,5 +1,4 @@
-/**
- * Code modified from and inspired by https://learn.sparkfun.com/tutorials/xbee-shield-hookup-guide/all
+/*
  * Last accessed 2021-10-04
  * Last modified 2021-10-22
  * Written by Simon Sörensen @ Kristianstad University
@@ -7,16 +6,26 @@
 
 #include <SoftwareSerial.h>
 SoftwareSerial XBee(0, 1);
-bool cont = true; // global cont var for alarm checkers
+bool cont = true; // global var for alarms
+bool cont0 = true; // global var for burglar alarm (and window)
+bool cont1 = true; // global var for fire alarm
+bool cont2 = true; // ... waterleakage
+bool cont3 = true; // ... power outage 
+volatile long currentMillis = 0;
+volatile long previousMillis = 0;
+const long lightCheckIntervalMS = 4000; 
 
 void setup()
 {
   XBee.begin(9600);
+  mux(1,1,0,0); // timer1 has to be initially turned off
+  delay(1000);
+  mux(1,1,1,1);
 }
 
 void loop()
 {
-  systemsChecker();
+  SystemsChecker();
   XBeeChecker();
 }
 
@@ -70,16 +79,6 @@ void writeM()
 
   String r = String(h11) + String(h22) + String(h33) + String(h44);
   response("m", r);
-
-  pinMode(12, OUTPUT);
-  pinMode(13, OUTPUT);
-  pinMode(11, OUTPUT);
-  pinMode(8, OUTPUT); 
-
-  if(h11 == '0' && h22 == '0' && h33 == '0' && h44 == '0')
-  {
-    cont = true;
-  }
   
   mux(h1, h2, h3, h4);
 }
@@ -124,7 +123,7 @@ void readA()
     ; 
   char pin = XBee.read(); 
   pin = ASCIItoInt(pin); 
-  
+  pinMode(pin, INPUT);
   if(pin == 1 || pin == 2) 
   {
     response("", String(tempconverter(analogRead(pin))));
@@ -162,6 +161,10 @@ int ASCIItoInt(char c)
 
 void mux(int a, int b, int c, int d)
 {
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(8, OUTPUT); 
   digitalWrite(12, a);
   digitalWrite(13, b);
   digitalWrite(11, c);
@@ -186,29 +189,60 @@ void response(String pin, String value)
   XBee.print(value);
 }
 
-void burglaryCheck(int pin){
-  soundwhenLOW(pin);
+void burglaryCheck(int pin, bool cont0){
+  if(cont0){
+    soundwhenLOW(pin, "bAlarm"); 
+  }
 }
 
-void windowCheck(int pin){
-  soundwhenHIGH(pin);
+void windowCheck(int pin, bool cont0){
+  if(cont0){
+    soundwhenHIGH(pin, "wAlarm");
+  }
 }
 
-void fireAlarmCheck(int pin){
- soundwhenHIGH(pin);
+void fireAlarmCheck(int pin, bool cont1){
+  if(cont1){
+    soundwhenHIGH(pin, "fAlarm"); 
+  }
 }
 
-void soundwhenHIGH(int pin){
+void waterAlarmCheck(int pin, bool cont2){
+  if(cont2){
+    soundwhenHIGH(pin, "wLeakage");
+  }
+}
+
+void lightCheck(){
+  pinMode(3, INPUT);
+  
+  currentMillis = millis();
+  if(currentMillis - previousMillis >= lightCheckIntervalMS){
+    previousMillis = currentMillis;
+      if(lightconverter(analogRead(3)) < 50){
+         //mux(0,0,1,0);
+         // du måste ha en delayhär mellan annars fuckar allt
+         mux(0,1,1,1);
+      } else {
+         //mux(1,0,1,0);
+         mux(1,1,1,1);
+      }
+  }
+}
+
+void soundwhenHIGH(int pin, String r){
   if(digitalRead(pin) == 1 && cont){
     mux(1,0,0,0);
     cont = false;
+    response("", r);
   } 
 }
 
-void soundwhenLOW(int pin){
+void soundwhenLOW(int pin, String r){
   if(digitalRead(pin) == 0 && cont){
     mux(1,0,0,0);
     cont = false;
+    response("", r);
   }
 }
 
@@ -220,6 +254,7 @@ void trueOrNah(int trueOrNah)
   else if(trueOrNah == '0')
   {
     cont = false;
+    mux(0,0,0,0);
   }
 }
 
@@ -231,6 +266,47 @@ void alarmToggle()
   trueOrNah(onOffchar);
   String sendMeBack = String("b") + String(onOffchar);
   response("", sendMeBack);
+}
+
+void individualAlarmToggle()
+{
+  while (XBee.available() < 2)
+    ;
+  char alarmType = XBee.read();
+  char contOrNot = XBee.read();
+
+  if(alarmType == '0'){
+    if(contOrNot == '0'){
+      cont0 = false;
+      mux(0,0,0,0);
+    } else if(contOrNot == '1'){
+      cont0 = true;
+    }
+  } else if(alarmType == '1'){
+    if(contOrNot == '0'){
+      cont1 = false;
+      mux(0,0,0,0);
+    } else if(contOrNot == '1'){
+      cont1 = true;
+    }
+  } else if(alarmType == '2'){
+    if(contOrNot == '0'){
+      cont2 = false;
+      mux(0,0,0,0);
+    } else if(contOrNot == '1'){
+      cont2 = true;
+    }
+  } else if(alarmType == '3'){
+    if(contOrNot == '0'){
+      cont3 = false;
+      mux(0,0,0,0);
+    } else if(contOrNot == '1'){
+      cont3 = true;
+    }
+  }
+
+  String qwerty = String("i") + String(alarmType) + String(contOrNot);
+  response("",qwerty);
 }
 
 // checks the XBee for commands
@@ -261,14 +337,19 @@ void XBeeChecker(){
     case 'b':
       alarmToggle();
       break;
+    case 'i':
+      individualAlarmToggle();
+      break;  
     }
   }
 }
 
 // checks the internal house systems for alarm
-void systemsChecker()
+void SystemsChecker()
 {
-  burglaryCheck(3);
-  windowCheck(6);
-  fireAlarmCheck(2);
+  burglaryCheck(3, cont0);
+  windowCheck(6, cont0);
+  fireAlarmCheck(2, cont1);
+  waterAlarmCheck(4, cont2);
+  lightCheck();
 }
