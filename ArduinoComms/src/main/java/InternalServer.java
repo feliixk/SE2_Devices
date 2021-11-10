@@ -45,6 +45,17 @@ public class InternalServer {
                 temp.add(ok);
                 oos.writeObject(temp);
 
+//                for (int i = 0; i < 20; i++) {
+//                    if(i %2 != 0) {
+//                        String r = sc.sendCommand(SerialPort.getCommPort(portsS.get(x)), "m0111");
+//                        System.out.println(r);
+//                    }else{
+//                        String resp = sc.sendCommand(SerialPort.getCommPort(portsS.get(x)),"m1111");
+//                        System.out.println(resp);
+//                    }
+//                }
+
+
 //                oos.close();
 //                ois.close();
 //                bw.close();
