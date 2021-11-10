@@ -12,6 +12,7 @@ Indication burlgar alarm lamp on/off --> m0011/m1011
 Indoor lighting on/off               --> m0010/m1010
 Timer 2 on/off 			     --> m0001/m1001
 Sound on/off			     --> m1000/m0000
+Alarms active/inactive               --> b1/b0
 ----------------------------------------------------------------------------------------------
 Send corresponding strings to devices-server for feedback.
 Ex: checking the outdoor temperature is done by sending the string "d9" to the devices-server
