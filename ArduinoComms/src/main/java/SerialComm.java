@@ -137,78 +137,86 @@ public class SerialComm {
     }
 
     public String sendCommand(SerialPort port, String command) {
-
+        String strFileContents = "";
         //Not implemented yet
+        port.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 
-//        String strFileContents = "";
-//
-//        System.out.println(">Comms started, port: " + port.getSystemPortName());
-//
-//        PrintWriter output = new PrintWriter(port.getOutputStream());
-//        BufferedInputStream bis = new BufferedInputStream(port.getInputStream());
-//        BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
-//        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-//
-//        InputStream is = null;
-//        BufferedReader br = null;
-//        //output.print("p000"); //FUCK YEAH this owrks
-//
-//
-//        boolean loop;
-//        boolean loop2;
-//
-//        try {
-//
-//
-//            is = System.in;
-//            br = new BufferedReader(new InputStreamReader(is));
-//
-//            String inString = null;
-//
-//
-//            loop = true;
-//            loop2 = true;
-//
-//
-//            System.out.println("> Sent command " + command + " to Arduino");
-//
-//
-//            //uncomment this, when trying with arduino IRL
-//            output.print(command);
-//            output.flush();
-//            //System.out.println();
-//            //System.out.print(bis.readAllBytes());
-//
-//            byte[] contents = new byte[1024];
-//
-//            try {
-//                Thread.sleep(100);
-//            } catch (Exception e) {
-//            }
-//
-//            int bytesRead = 0;
-//            while (loop2) {
-//                try {
-//                    bytesRead = bis.read(contents);
-//                    try {
-//                        Thread.sleep(100);
-//                    } catch (Exception e) {
-//                    }
-//                    loop2 = false;
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                strFileContents += new String(contents, 0, bytesRead);
-//            }
-//
-//            System.out.println(strFileContents);
-//
-//            strFileContents = "";
-//
-//
-//        } catch (Exception e) {
+        if (port.openPort()) {
+            // wait after connecting, so arduino/xbee bootloader can finish
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+            }
+
+
+        }
+
+            System.out.println(">Comms started, port: " + port.getSystemPortName());
+
+            PrintWriter output = new PrintWriter(port.getOutputStream());
+            BufferedInputStream bis = new BufferedInputStream(port.getInputStream());
+            BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+
+            InputStream is = null;
+            BufferedReader br = null;
+            //output.print("p000"); //FUCK YEAH this owrks
+
+
+            boolean loop;
+            boolean loop2;
+
+            try {
+
+
+                is = System.in;
+                br = new BufferedReader(new InputStreamReader(is));
+
+                String inString = null;
+
+
+                loop = true;
+                loop2 = true;
+
+
+                System.out.println("> Sent command " + command + " to Arduino");
+
+
+                //uncomment this, when trying with arduino IRL
+                output.print(command);
+                output.flush();
+                //System.out.println();
+                //System.out.print(bis.readAllBytes());
+
+                byte[] contents = new byte[1024];
+
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                }
+
+                int bytesRead = 0;
+                while (loop2) {
+                    try {
+                        bytesRead = bis.read(contents);
+                        try {
+                            Thread.sleep(100);
+                        } catch (Exception e) {
+                        }
+                        loop2 = false;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    strFileContents += new String(contents, 0, bytesRead);
+                }
+
+                System.out.println(strFileContents);
+
+
+            } catch (Exception e) {
 //            e.printStackTrace();
-//        }
-        return "";
-//    }
-}}
+            }
+
+        return strFileContents;
+    }
+}
