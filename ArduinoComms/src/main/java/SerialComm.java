@@ -137,8 +137,7 @@ public class SerialComm {
     }
 
     public String sendCommand(SerialPort port, String command) {
-        String strFileContents = "";
-        //Not implemented yet
+        String response = ""; //response from arduino
         port.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
 
         if (port.openPort()) {
@@ -147,76 +146,45 @@ public class SerialComm {
                 Thread.sleep(100);
             } catch (Exception e) {
             }
-
-
         }
+        // get streams from serial port
+        PrintWriter output = new PrintWriter(port.getOutputStream());
+        BufferedInputStream bis = new BufferedInputStream(port.getInputStream());
 
-            System.out.println(">Comms started, port: " + port.getSystemPortName());
+        boolean readyToReadResponse = true;
 
-            PrintWriter output = new PrintWriter(port.getOutputStream());
-            BufferedInputStream bis = new BufferedInputStream(port.getInputStream());
-            BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
-            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        try {
+            //send command to arduino
+            output.print(command);
+            output.flush();
 
-            InputStream is = null;
-            BufferedReader br = null;
-            //output.print("p000"); //FUCK YEAH this owrks
+            //debug sout
+            System.out.println("> Sent command " + command + " to Arduino");
 
+            // wait 100 ms for response.
+            Thread.sleep(100);
 
-            boolean loop;
-            boolean loop2;
-
-            try {
-
-
-                is = System.in;
-                br = new BufferedReader(new InputStreamReader(is));
-
-                String inString = null;
-
-
-                loop = true;
-                loop2 = true;
-
-
-                System.out.println("> Sent command " + command + " to Arduino");
-
-
-                //uncomment this, when trying with arduino IRL
-                output.print(command);
-                output.flush();
-                //System.out.println();
-                //System.out.print(bis.readAllBytes());
-
-                byte[] contents = new byte[1024];
-
+            //read response from arduino
+            byte[] contents = new byte[1024];
+            int bytesRead = 0;
+            while (readyToReadResponse) {
                 try {
+                    bytesRead = bis.read(contents);
                     Thread.sleep(100);
-                } catch (Exception e) {
+                    readyToReadResponse = false;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-
-                int bytesRead = 0;
-                while (loop2) {
-                    try {
-                        bytesRead = bis.read(contents);
-                        try {
-                            Thread.sleep(100);
-                        } catch (Exception e) {
-                        }
-                        loop2 = false;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    strFileContents += new String(contents, 0, bytesRead);
-                }
-
-                System.out.println(strFileContents);
-
-
-            } catch (Exception e) {
-//            e.printStackTrace();
+                response += new String(contents, 0, bytesRead);
             }
 
-        return strFileContents;
+            //debug response printout
+            System.out.println(">Response code: " + response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return response; // return response from arduino to server
     }
 }
