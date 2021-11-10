@@ -22,7 +22,14 @@ public class InternalServer {
 
         SerialComm sc = new SerialComm();
         ArrayList<String> responses = new ArrayList<>();
-        SerialPort sPort = SerialPort.getCommPort(portsS.get(0));
+        int x = 0;
+        for (int i = 0; i < portsS.size(); i++) {
+            if(portsS.get(i).equalsIgnoreCase("COM3")){
+                x=i;
+            }
+        }
+
+        SerialPort sPort = SerialPort.getCommPort(portsS.get(x));
         while (true) {
             try {
 
