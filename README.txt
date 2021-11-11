@@ -13,6 +13,7 @@ Indication burlgar alarm lamp on/off --> m0011/m1011
 Indoor lighting on/off               --> m0010/m1010
 Timer 2 on/off 			     --> m0001/m1001
 Sound on/off			     --> m1000/m0000 **
+
 All alarms on/off                    --> b1/b0
 Burglar alarm on/off                 --> i01/i00 (includes window check)
 Fire alarm on/off                    --> i11/i10
