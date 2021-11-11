@@ -46,7 +46,7 @@ Additional information regarding devices.
 As of (2021-11-11) alarms now do two things upon activation; they trigger the alarm sound
 in the house (can be manually accessed by "m1000/m0000") and they also send a message to
 the internal server that an alarm has been activated. This message can then be used to
-inform further up the chain that an alarm has been activated. The arduino informs about
+inform further up the chain. The arduino informs about
 what alarm has gone off according to the scheme below:
 
 Burglary alarm has gone off          --> "bAlarm" will be sent if activated by door opening
@@ -61,7 +61,7 @@ re-activation.
 
 *Outdoor lighting is mainly controlled via a lightsensor that is checked at a certain
 interval. This automatic light control overrides manually sent commands. This may be changed
-for in future versions of the software.
+in future versions of the software.
 **Turning on sound will immediately beep the alarm sound in the smart house without an actual
 alarm being triggered. This may interfere with alarm functionality. Use at own risk.
 ----------------------------------------------------------------------------------------------
