@@ -1,8 +1,12 @@
 import com.fazecast.jSerialComm.SerialPort;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class SerialComm {
+
+    private   byte[] sendingPack;
+    private   byte[] receivingPack;
 
     public void startCon(SerialPort port) throws IOException {
 
@@ -19,51 +23,19 @@ public class SerialComm {
 
             System.out.println(">Comms started, port: " + port.getSystemPortName());
 
+            port.setBaudRate(9600);
             PrintWriter output = new PrintWriter(port.getOutputStream());
             BufferedInputStream bis = new BufferedInputStream(port.getInputStream());
             BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
-            boolean loop;
-            boolean loop2 = true;
-
-            try {
-                Thread.sleep(100);
-            } catch (Exception e) {
-            }
-            output.print("m0111");
-            output.flush();
-
-            byte[] contents = new byte[1024];
-
-            try {
-                Thread.sleep(100);
-            } catch (Exception e) {
-            }
-
-            int bytesRead = 0;
-            while (loop2) {
-                try {
-                    bytesRead = bis.read(contents);
-
-                    if (bytesRead == 0) {
-                        loop2 = false;
-                    }
-                    try {
-                        Thread.sleep(100);
-                    } catch (Exception e) {
-                    }
-                    loop2 = false;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                strFileContents += new String(contents, 0, bytesRead);
-            }
-
 
             InputStream is = null;
             BufferedReader br = null;
             //output.print("p000");
+
+            boolean readyToReadResponse = true;
+            String response = "";
 
 
             try {
@@ -72,68 +44,80 @@ public class SerialComm {
                 is = System.in;
                 br = new BufferedReader(new InputStreamReader(is));
 
-                String inString = null;
-
+                String inString;
                 while ((inString = br.readLine()) != null) {
-
-                    loop = true;
-                    loop2 = true;
-
                     if (inString.equalsIgnoreCase(("disconnect"))) {
                         break;
                     }
+
 
                     System.out.println("> Sent command " + inString + " to Arduino");
 
 
                     //uncomment this, when trying with arduino IRL
-                    output.print(inString);
+                    byte[] writeContent;
+
+                    writeContent = inString.getBytes();
+                    System.out.println(writeContent);
+
+                    port.writeBytes(writeContent, 6, 0);
                     output.flush();
 
-                    contents = new byte[1024];
 
                     try {
                         Thread.sleep(100);
                     } catch (Exception e) {
                     }
 
-                    bytesRead = 0;
-                    while (loop2) {
-                        try {
-                            bytesRead = bis.read(contents);
+                    new Thread(() -> reader(port)).start();
 
-                            if (bytesRead == 0) {
-                                loop2 = false;
-                            }
-                            try {
-                                Thread.sleep(100);
-                            } catch (Exception e) {
-                            }
-                            loop2 = false;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        strFileContents += new String(contents, 0, bytesRead);
-                    }
 
-                    System.out.println(strFileContents);
-
-                    System.out.println("------------------");
-                    strFileContents = "";
                 }
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            }catch (Exception e) {
             }
 
-
-        } else {
-            // disconnect from the serial port
-            port.closePort();
-            System.out.println("Conn closed");
+            } else{
+                // disconnect from the serial port
+                port.closePort();
+                System.out.println("Conn closed");
+            }
         }
 
+    public void reader(SerialPort port){
+        byte[] readBuffer;
+        try {
+            while (true)
+            {
+                while (port.bytesAvailable() == 0)
+                    Thread.sleep(10);
+
+                readBuffer = new byte[port.bytesAvailable()];
+                int numRead = port.readBytes(readBuffer, readBuffer.length);
+                System.out.println("Read " + numRead + " bytes.");
+
+                String s = new String(readBuffer, StandardCharsets.UTF_8);
+                System.out.println("Arduino response: " + s);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public String readCommands(){
+        SerialPort comPort = SerialPort.getCommPorts()[0];
+        comPort.openPort();
+        byte[] readBuffer = new byte[1024];
+        try {
+            while (true)
+            {
+                while (comPort.bytesAvailable() == 0)
+                    Thread.sleep(20);
+
+                readBuffer = new byte[comPort.bytesAvailable()];
+                int numRead = comPort.readBytes(readBuffer, readBuffer.length);
+                System.out.println("Read " + numRead + " bytes.");
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        comPort.closePort();
+        return readBuffer.toString();
     }
 
     public String sendCommand(SerialPort port, String command) {
@@ -155,8 +139,17 @@ public class SerialComm {
 
         try {
             //send command to arduino
-            output.print(command);
-            output.flush();
+           // output.print(command);
+            byte[] writeContent;
+
+            writeContent = command.getBytes();
+            System.out.println(writeContent);
+
+            port.writeBytes(writeContent, 6,0);
+            //output.flush();
+
+
+
 
             //debug sout
             System.out.println("> Sent command " + command + " to Arduino");
@@ -187,4 +180,18 @@ public class SerialComm {
 
         return response; // return response from arduino to server
     }
-}
+
+    public static void sendData(SerialPort arduinoPort, byte[] buffer){
+        byte[] sendingPack = new byte[6];
+        byte[] receivingPack= new byte[36];
+
+            arduinoPort.writeBytes(sendingPack,6,0);
+
+            //System.out.println("Sending"+bytesToHexString(sendingPack));
+            try {
+                Thread.sleep(200);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
