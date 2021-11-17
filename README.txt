@@ -23,7 +23,7 @@ Power outage alarm on/off            --> i31/i30 (not yet implemented)
 Send corresponding strings to devices-server for FEEDBACK.
 Ex: checking the outdoor temperature is done by sending the string "d9" to the devices-server
 
-Check outside temperature 	     --> d9
+Check outside temperature 	     --> r9
 Check inside temperature	     --> a1
 Check inside temperature attic       --> a2
 Check LDR (light reader)	     --> a3
