@@ -90,14 +90,15 @@ void writePWM(char c)
     }
     else if(c == 't')
     {
-      char rr = XBee.read();
-      char rr2 = XBee.read();
-      char rr4 = XBee.read();
+      // not yet tested
+      String rr = String(XBee.read());
+      rr += String(XBee.read());
+      rr += ".";
+      rr += String(XBee.read());
+      
+      response("t", rr);
 
-      String dt = String(rr)+String(rr2)+"."+String(rr4);
-      response("t", dt);
-
-      desiredTemp = dt.toFloat();
+      desiredTemp = rr.toFloat();
     }
 }
 
@@ -159,7 +160,7 @@ void readD()
   else if(pin == 8)
   {
      // not yet tested
-    response("", String(stoveOnTime));
+    response(String(pin), String(stoveOnTime));
   } 
   else 
   {
@@ -306,12 +307,12 @@ void stoveCheck()
 
 void tempCheck()
 {
-  pinMode(2, INPUT);
+  pinMode(1, INPUT);
   currentTempMillis = millis();
   if(currentTempMillis - previousTempMillis >= tempCheckIntervalMS && cont5)
   {
     previousTempMillis = currentTempMillis;
-    if(tempconverter(analogRead(2)) < (desiredTemp - 1.0))
+    if(tempconverter(analogRead(1)) < (desiredTemp - 1.0))
     {
       if(cont7)
       {
@@ -532,5 +533,5 @@ void systemsChecker()
   waterAlarmCheck(4, cont2);
   lightCheck();
   stoveCheck();
-  tempCheck(); 
+  //tempCheck(); funkar inte
 }
