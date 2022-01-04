@@ -527,6 +527,13 @@ void xbeeChecker(){
 // checks the internal house systems for alarm
 void systemsChecker()
 {
+  /*
+  if(cont)
+  {
+   // alla alarm?
+  }
+  */
+  
   burglaryCheck(3, cont0);
   windowCheck(6, cont0);
   fireAlarmCheck(2, cont1);
