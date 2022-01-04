@@ -540,5 +540,5 @@ void systemsChecker()
   waterAlarmCheck(4, cont2);
   lightCheck();
   stoveCheck();
-  //tempCheck(); funkar inte
+  tempCheck(); 
 }
