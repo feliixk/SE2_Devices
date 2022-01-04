@@ -369,7 +369,7 @@ void soundwhenHIGH(int pin, String r){
   // sätt in intervaller, så den inte spammar digitalRead
   if(digitalRead(pin) == 1 && cont){
     mux(1,0,0,0);
-    cont = false;
+    cont = false; // detta kan inte vara kvar om du har cont i systemschecker
     response("", r);
   } 
 }
@@ -378,7 +378,7 @@ void soundwhenLOW(int pin, String r){
   // sätt in intervaller, så den inte spammar digitalRead
   if(digitalRead(pin) == 0 && cont){
     mux(1,0,0,0);
-    cont = false;
+    cont = false; // detta kan inte vara kvar om du har cont i systemschecker
     response("", r);
   }
 }
