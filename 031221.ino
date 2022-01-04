@@ -13,6 +13,7 @@ bool cont4 = true; // global var for automatic light override
 bool cont5 = true; // global var for automatic indoor heating
 bool cont6, cont8 = true; // prevents spamming of outside light
 bool cont7, cont9 = true; // prevents spamming of heating functionality
+bool cont10, cont11 = true;
 volatile long currentMillis = 0;
 volatile long previousMillis = 0;
 volatile long stoveOnTime = 0;
@@ -367,18 +368,18 @@ void lightCheck()
 
 void soundwhenHIGH(int pin, String r){
   // sätt in intervaller, så den inte spammar digitalRead
-  if(digitalRead(pin) == 1 && cont){
+  if(digitalRead(pin) == 1 && cont11){
     mux(1,0,0,0);
-    cont = false; // detta kan inte vara kvar om du har cont i systemschecker
+    cont11 = false;
     response("", r);
   } 
 }
 
 void soundwhenLOW(int pin, String r){
   // sätt in intervaller, så den inte spammar digitalRead
-  if(digitalRead(pin) == 0 && cont){
+  if(digitalRead(pin) == 0 && cont10){
     mux(1,0,0,0);
-    cont = false; // detta kan inte vara kvar om du har cont i systemschecker
+    cont10 = false;
     response("", r);
   }
 }
@@ -387,10 +388,14 @@ void trueOrNah(int trueOrNah)
 {
   if(trueOrNah == '1'){
     cont = true;
+    cont10 = true;
+    cont11 = true;
   } 
   else if(trueOrNah == '0')
   {
     cont = false;
+    cont10 = false;
+    cont11 = false;
     mux(0,0,0,0);
   }
 }
