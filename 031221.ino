@@ -427,6 +427,8 @@ void individualToggle()
     else if(contOrNot == '1')
     {
       cont0 = true;
+      cont10 = true;
+      cont11 = true;
     }
   } 
   else if(type == '1')
@@ -439,6 +441,8 @@ void individualToggle()
     else if(contOrNot == '1')
     {
       cont1 = true;
+      cont10 = true;
+      cont11 = true;
     }
   } 
   else if(type == '2')
@@ -451,6 +455,8 @@ void individualToggle()
     else if(contOrNot == '1')
     {
       cont2 = true;
+      cont10 = true;
+      cont11 = true;
     }
   }
   else if(type == '3')
