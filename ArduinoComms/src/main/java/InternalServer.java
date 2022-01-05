@@ -30,7 +30,11 @@ public class InternalServer {
     }
     public void SendMessage(String command){ //  när ni ska skicka till oss direkt behöver inte ändras alls.
         ArrayList<String> info = new ArrayList<>();
-        info.add(command+"-alarm"); // måste göra såhär
+        if(command.contains("Alarm")) {
+            info.add(command + "-alarm"); // måste göra såhär
+        }else if (command.contains("a0")||command.contains("a2")){
+            info.add(command.substring(0,2)+"-"+command.substring(2));
+        }
         String text123 = gson.toJson(info); // gör om till ett objekt som kan skickas
         webSocket.send(text123); // skicka  tillbaka
         System.out.println("Message sent");
@@ -81,10 +85,10 @@ public class InternalServer {
 
     }
     public static void threadedTasks(){
-        int pingTime = LocalTime.now().getSecond()+15;
+        int pingTime = LocalTime.now().getMinute()+5;
         while(true) {
-            if (LocalTime.now().getSecond() == pingTime) {
-                pingTime = LocalTime.now().getSecond() + 15;
+            if (LocalTime.now().getMinute() == pingTime) {
+                pingTime = LocalTime.now().getMinute() + 5;
                 serialComm.sendCommand("a2");
                 serialComm.sendCommand("a0");
             }

@@ -116,6 +116,8 @@ public class SerialComm {
                     if(s.contains("Alarm")){
                         server.SendMessage(s);
                         System.out.println("Sending alarm to SERVER");
+                    }else if(s.startsWith("a0")||s.startsWith("a2")){
+                        server.SendMessage(s);
                     }
                 }
             }
