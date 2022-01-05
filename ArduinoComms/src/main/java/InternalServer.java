@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 public class InternalServer {
@@ -25,6 +26,7 @@ public class InternalServer {
         Request request = new Request.Builder().url(SERVER_PATH).build();
         webSocket = client.newWebSocket(request, new SocketListener());
         new Thread(() -> serialComm.reader()).start();
+        new Thread(() -> threadedTasks()).start();
     }
     public void SendMessage(String command){ //  när ni ska skicka till oss direkt behöver inte ändras alls.
         ArrayList<String> info = new ArrayList<>();
@@ -77,6 +79,16 @@ public class InternalServer {
             System.out.println("onMessage END");
         }
 
+    }
+    public static void threadedTasks(){
+        int pingTime = LocalTime.now().getMinute()+5;
+        while(true) {
+            if (LocalTime.now().getMinute() == pingTime) {
+                pingTime = LocalTime.now().getMinute() + 5;
+                serialComm.sendCommand("a2");
+                serialComm.sendCommand("a0");
+            }
+        }
     }
 
 
