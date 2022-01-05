@@ -14,12 +14,16 @@ public class SerialComm {
     InternalServer server = new InternalServer();
 
     public SerialComm(){
-        SerialPort[] portNames = SerialPort.getCommPorts();
-        ArrayList<String> ports = new ArrayList<>();
-        for (int i = 0; i < portNames.length; i++) {
-            ports.add(portNames[i].getSystemPortName());
+        try {
+            SerialPort[] portNames = SerialPort.getCommPorts();
+            ArrayList<String> ports = new ArrayList<>();
+            for (int i = 0; i < portNames.length; i++) {
+                ports.add(portNames[i].getSystemPortName());
+            }
+            port = SerialPort.getCommPort(ports.get(2));
+        }catch (Exception e){
+            System.out.println("No serial communcation device found");
         }
-        port = SerialPort.getCommPort(ports.get(2));
     }
 
     public void startCon(SerialPort port) throws IOException {
@@ -116,7 +120,8 @@ public class SerialComm {
                     response = s;
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            System.out.println("server seems to be offline"); }
 
         System.out.println("thread terminated");
     }
