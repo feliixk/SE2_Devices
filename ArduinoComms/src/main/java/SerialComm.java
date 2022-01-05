@@ -11,7 +11,7 @@ public class SerialComm {
     SerialPort port;
     String response = null;
     String command = null;
-    Server server = new Server();
+    InternalServer server = new InternalServer();
 
     public SerialComm(){
         SerialPort[] portNames = SerialPort.getCommPorts();
