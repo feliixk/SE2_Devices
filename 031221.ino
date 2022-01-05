@@ -91,15 +91,14 @@ void writePWM(char c)
     }
     else if(c == 't')
     {
-      // not yet tested
-      String rr = String(XBee.read());
-      rr += String(XBee.read());
-      rr += ".";
-      rr += String(XBee.read());
+      char rr = XBee.read();
+      char rr2 = XBee.read();
+      char rr4 = XBee.read();
+      String dt = String(rr) + String(rr2) + String('.') + String(rr4);
       
-      response("t", rr);
+      response("t", dt);
 
-      desiredTemp = rr.toFloat();
+      desiredTemp = dt.toFloat();
     }
 }
 
@@ -161,7 +160,7 @@ void readD()
   else if(pin == 8)
   {
      // not yet tested
-    response(String(pin), String(stoveOnTime));
+    response("", String(stoveOnTime));
   } 
   else 
   {
@@ -185,12 +184,12 @@ void readA()
   {
     response("", String(lightconverter(analogRead(pin))));
   }
-  /*
   else if(pin == 0)
   {
-    LÄGG TILL OM DET BEHÖVS SPECIELL FUNKTIONALITET HÄR FÖR ATT KOLLA ELFÖRBRUKNING
+    //response("", String(analogRead(pin)));
+    response("", String(consumptionconverter(analogRead(pin))));
   }
-  */
+  
   else {
     response("", String(analogRead(pin))); 
   }
@@ -242,6 +241,11 @@ int lightconverter(int light)
   return map(light, 0, 1023, 0, 100);
 }
 
+int consumptionconverter(long cons)
+{
+  return map(map(cons,0,1023,0,12),0,12,0,48);
+}
+
 void response(String pin, String value)
 {
   XBee.print(pin);
@@ -278,6 +282,7 @@ void waterAlarmCheck(int pin, bool cont2)
 
 void stoveCheck()
 {
+  // sätt in intervaller, så den inte spammar digitalRead
   pinMode(5, INPUT);
   currentStoveMillis = millis();
   if(digitalRead(5) == 1)
@@ -308,19 +313,19 @@ void stoveCheck()
 
 void tempCheck()
 {
-  pinMode(1, INPUT);
+  pinMode(2, INPUT);
   currentTempMillis = millis();
   if(currentTempMillis - previousTempMillis >= tempCheckIntervalMS && cont5)
   {
     previousTempMillis = currentTempMillis;
-    if(tempconverter(analogRead(1)) < (desiredTemp - 1.0))
+    if(tempconverter(analogRead(2)) > (desiredTemp - 1.0))
     {
       if(cont7)
       {
         mux(0,1,0,1);
         cont7 = false;
         cont9 = true;
-        response("", "ihOn");
+        response("", "m0101");
       } 
     }
     else
@@ -330,7 +335,7 @@ void tempCheck()
         mux(1,1,0,1);
         cont9 = false;
         cont7 = true;
-        response("", "ihOff"); 
+        response("", "m1101"); 
       } 
     } 
   }
@@ -350,7 +355,7 @@ void lightCheck()
          mux(0,1,1,1);
          cont6 = false;
          cont8 = true;
-         response("", "outOn"); 
+         response("", "m0111"); 
         }
       } 
       else
@@ -360,7 +365,7 @@ void lightCheck()
          mux(1,1,1,1);
          cont8 = false;
          cont6 = true;
-         response("", "outOff"); 
+         response("", "m1111"); 
         }
       }
   }
@@ -388,14 +393,10 @@ void trueOrNah(int trueOrNah)
 {
   if(trueOrNah == '1'){
     cont = true;
-    cont10 = true;
-    cont11 = true;
   } 
   else if(trueOrNah == '0')
   {
     cont = false;
-    cont10 = false;
-    cont11 = false;
     mux(0,0,0,0);
   }
 }
@@ -422,13 +423,15 @@ void individualToggle()
     if(contOrNot == '0')
     {
       cont0 = false;
+      cont10 = false;
+      cont11 = false;
       mux(0,0,0,0);
     } 
     else if(contOrNot == '1')
     {
-      cont0 = true;
-      cont10 = true;
       cont11 = true;
+      cont10 = true;
+      cont0 = true;
     }
   } 
   else if(type == '1')
@@ -441,8 +444,6 @@ void individualToggle()
     else if(contOrNot == '1')
     {
       cont1 = true;
-      cont10 = true;
-      cont11 = true;
     }
   } 
   else if(type == '2')
@@ -455,8 +456,6 @@ void individualToggle()
     else if(contOrNot == '1')
     {
       cont2 = true;
-      cont10 = true;
-      cont11 = true;
     }
   }
   else if(type == '3')
@@ -475,7 +474,7 @@ void individualToggle()
     if(contOrNot == '0')
     {
       cont4 = false;
-      //mux(1,1,1,1);
+      mux(1,1,1,1);
     }
     else if(contOrNot == '1')
     {
@@ -487,7 +486,7 @@ void individualToggle()
     if(contOrNot == '0')
     {
       cont5 = false;
-      //mux(1,1,0,1);
+      mux(1,1,0,1);
     }
     else if(contOrNot == '1')
     {
@@ -538,18 +537,11 @@ void xbeeChecker(){
 // checks the internal house systems for alarm
 void systemsChecker()
 {
-  /*
-  if(cont)
-  {
-   // alla alarm?
-  }
-  */
-  
   burglaryCheck(3, cont0);
   windowCheck(6, cont0);
   fireAlarmCheck(2, cont1);
   waterAlarmCheck(4, cont2);
   lightCheck();
   stoveCheck();
-  tempCheck(); 
+  tempCheck();
 }
