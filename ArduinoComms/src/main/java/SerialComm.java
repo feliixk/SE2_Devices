@@ -6,14 +6,12 @@ import java.util.ArrayList;
 
 public class SerialComm {
 
-    private   byte[] sendingPack;
-    private   byte[] receivingPack;
     SerialPort port;
     String response = null;
     String command = null;
     InternalServer server = new InternalServer();
 
-    public SerialComm(){
+    public SerialComm() {
         try {
             SerialPort[] portNames = SerialPort.getCommPorts();
             ArrayList<String> ports = new ArrayList<>();
@@ -21,7 +19,7 @@ public class SerialComm {
                 ports.add(portNames[i].getSystemPortName());
             }
             port = SerialPort.getCommPort(ports.get(2));
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println("No serial communcation device found");
         }
     }
@@ -49,17 +47,12 @@ public class SerialComm {
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
 
-
             InputStream is = null;
             BufferedReader br = null;
             //output.print("p000");
 
-            boolean readyToReadResponse = true;
-            String response = "";
-
 
             try {
-
 
 
                 is = System.in;
@@ -91,17 +84,17 @@ public class SerialComm {
 
 
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
             }
 
-        } else{
+        } else {
             // disconnect from the serial port
             port.closePort();
             System.out.println("Conn closed");
         }
     }
 
-    public void reader(){
+    public void reader() {
         try {
             System.out.println("thread alive");
             while (true) {
@@ -118,48 +111,38 @@ public class SerialComm {
                     String s = new String(readBuffer, StandardCharsets.UTF_8);
                     System.out.println("Arduino response: " + s);
                     response = s;
+                    //getResponse();
+
+                    if(s.contains("Alarm")){
+                        server.SendMessage(s);
+                        System.out.println("Sending alarm to SERVER");
+                    }
                 }
             }
         } catch (Exception e) {
-            System.out.println("server seems to be offline"); }
+            System.out.println("server seems to be offline");
+        }
 
         System.out.println("thread terminated");
     }
 
-    public String getResponse(){
+    public String getResponse() {
         String returnS = null;
-        if(command == null && response != null) {
+        if (command == null && response != null) {
             server.SendMessage(response);
             response = null;
-        }
-        else if(command.equalsIgnoreCase(response)){
+            System.out.println("1");
+        } else if (command.equalsIgnoreCase(response)) {
             command = null;
-            returnS =  "ok";
-        }else if(!command.equalsIgnoreCase(response)){
-            returnS =  "not ok";
+            returnS = "ok";
+            System.out.println("2");
+        } else if (!command.equalsIgnoreCase(response)) {
+            returnS = "not ok";
+            System.out.println("3");
         }
 
         return returnS;
 
-    }
-
-    public String readCommands(){
-        SerialPort comPort = SerialPort.getCommPorts()[0];
-        comPort.openPort();
-        byte[] readBuffer = new byte[1024];
-        try {
-            while (true)
-            {
-                while (comPort.bytesAvailable() == 0)
-                    Thread.sleep(20);
-
-                readBuffer = new byte[comPort.bytesAvailable()];
-                int numRead = comPort.readBytes(readBuffer, readBuffer.length);
-                System.out.println("Read " + numRead + " bytes.");
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        comPort.closePort();
-        return readBuffer.toString();
     }
 
     public void sendCommand(String command) {
@@ -223,17 +206,4 @@ public class SerialComm {
 //        return response; // return response from arduino to server
     }
 
-    public static void sendData(SerialPort arduinoPort, byte[] buffer){
-        byte[] sendingPack = new byte[6];
-        byte[] receivingPack= new byte[36];
-
-        arduinoPort.writeBytes(sendingPack,6,0);
-
-        //System.out.println("Sending"+bytesToHexString(sendingPack));
-        try {
-            Thread.sleep(200);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
