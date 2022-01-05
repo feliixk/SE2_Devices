@@ -439,11 +439,15 @@ void individualToggle()
     if(contOrNot == '0')
     {
       cont1 = false;
+      cont11 = false;
+      cont10 = false;
       mux(0,0,0,0);
     } 
     else if(contOrNot == '1')
     {
       cont1 = true;
+      cont11 = true;
+      cont10 = true;
     }
   } 
   else if(type == '2')
@@ -451,11 +455,15 @@ void individualToggle()
     if(contOrNot == '0')
     {
       cont2 = false;
+      cont11 = false;
+      cont10 = false;
       mux(0,0,0,0);
     } 
     else if(contOrNot == '1')
     {
       cont2 = true;
+      cont11 = true;
+      cont10 = true;
     }
   }
   else if(type == '3')
