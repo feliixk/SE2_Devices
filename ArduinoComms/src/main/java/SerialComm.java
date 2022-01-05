@@ -161,6 +161,7 @@ public class SerialComm {
         this.command = command;
         String response = ""; //response from arduino
         port.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
+        port.setBaudRate(9600);
 
         if (port.openPort()) {
             // wait after connecting, so arduino/xbee bootloader can finish
