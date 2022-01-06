@@ -96,11 +96,11 @@ public class SerialComm {
 
     public void reader() {
         try {
-            System.out.println("thread alive");
+            System.out.println(">Reader thread alive");
             while (true) {
                 byte[] readBuffer;
                 while (port.bytesAvailable() == 0)
-                    Thread.sleep(20);
+                {Thread.sleep(15);}
 
 
                 while (port.bytesAvailable() > 0) {
