@@ -76,8 +76,9 @@ public class InternalServer {
             System.out.println("Response from arduino to server: " + responseList.get(0));
             if(command.contains("p")){
                 info.set(0,info.get(0)+"-"+command.substring(1));
+            }else {
+                info.set(0, info.get(0) + "-" + responseList.get(0)); // omdet går egenom
             }
-            info.set(0,info.get(0) +"-"+ responseList.get(0)); // omdet går egenom
 
             //info.set(0,info.get(0) + "-fail"); // om det inte går egenom
 
