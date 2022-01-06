@@ -117,9 +117,12 @@ public class SerialComm {
                         server.SendMessage(s);
                         System.out.println("Sending alarm to SERVER");
                     }else if(s.startsWith("a0")||s.startsWith("a2")){
-                        double t = Integer.parseInt(s.substring(2));
-                       int f =(int)Math.round(t);
-                       s=String.valueOf(f);
+                        double t = Double.parseDouble(s.substring(2));
+//                       int f =(int)Math.round(t);
+                        int f = (int)(t*10);
+                       s=s.substring(0,2);
+                       s+=String.valueOf(f);
+                        System.out.println(s+"    --");
                         server.SendMessage(s);
                     }
                 }
