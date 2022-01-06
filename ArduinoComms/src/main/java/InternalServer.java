@@ -34,6 +34,8 @@ public class InternalServer {
             info.add(command + "-alarm"); // måste göra såhär
         }else if (command.contains("a0")||command.contains("a2")){
             info.add(command.substring(0,2)+"-"+command.substring(2));
+        }else if (command.contains("p")){
+            info.add(command.substring(1));
         }
         String text123 = gson.toJson(info); // gör om till ett objekt som kan skickas
         webSocket.send(text123); // skicka  tillbaka
