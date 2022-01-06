@@ -85,10 +85,13 @@ public class InternalServer {
 
     }
     public static void threadedTasks(){
-        int pingTime = LocalTime.now().getMinute()+5;
+        int pingTime = LocalTime.now().getSecond()+15;
         while(true) {
-            if (LocalTime.now().getMinute() == pingTime) {
-                pingTime = LocalTime.now().getMinute() + 5;
+            if (LocalTime.now().getSecond() == pingTime) {
+                pingTime = LocalTime.now().getSecond() + 15;
+                if(pingTime>59){
+                    pingTime-=60;
+                }
                 serialComm.sendCommand("a2");
                 serialComm.sendCommand("a0");
             }
