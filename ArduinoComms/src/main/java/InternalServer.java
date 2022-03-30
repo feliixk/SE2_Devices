@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class InternalServer {
     private static WebSocket webSocket;
-    private static String SERVER_PATH = "[REDACTED]
+    private static String SERVER_PATH = "[REDACTED]"
     private static Gson gson;
     private static SerialComm serialComm = new SerialComm();
 
