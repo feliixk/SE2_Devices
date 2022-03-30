@@ -10,8 +10,7 @@ import java.util.ArrayList;
 
 public class InternalServer {
     private static WebSocket webSocket;
-    private static String SERVER_PATH = "ws://85.197.159.150:1338/arduino";
-    //private static String SERVER_PATH = "ws://85.197.159.131:1337/arduino; //bogges IP
+    private static String SERVER_PATH = "[REDACTED]
     private static Gson gson;
     private static SerialComm serialComm = new SerialComm();
 
